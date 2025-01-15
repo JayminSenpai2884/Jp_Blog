@@ -1,0 +1,56 @@
+---
+import Layout from '../layouts/Layout.astro';
+import BlogCard from '../components/BlogCard.astro';
+
+const posts = [
+  {
+    title: "Algorithms",
+    summary: "A Beginner’s Guide to Essential Concepts",
+    image: "https://miro.medium.com/v2/resize:fit:720/format:webp/0*6_6oTEqn7SK5GdTa",
+    url: "https://medium.com/@jayminparmar2884/algorithms-a-beginners-guide-to-essential-concepts-bda5705c48d2"
+  },
+  {
+    title: "Embracing the AI Revolution",
+    summary: "How Developers Can Stay Ahead in 2025",
+    image: "https://miro.medium.com/v2/resize:fit:720/format:webp/0*mcYLzugOOd7m0MCc",
+    url: "https://medium.com/@jayminparmar2884/embracing-the-ai-revolution-how-developers-can-stay-ahead-in-2025-72441b4822b2"
+  }
+];
+---
+
+<Layout title="JP Blog">
+  <main class="pt-20 page-transition">
+    <div class="max-w-container mx-auto px-4 pb-16">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
+        {posts.map(post => (
+          <div class="animate-fade-in">
+            <BlogCard {...post} />
+          </div>
+        ))}
+      </div>
+    </div>
+  </main>
+</Layout>
+
+<style>
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.6s ease-out forwards;
+    opacity: 0;
+  }
+
+  .animate-fade-in:nth-child(1) { animation-delay: 0.1s; }
+  .animate-fade-in:nth-child(2) { animation-delay: 0.2s; }
+  .animate-fade-in:nth-child(3) { animation-delay: 0.3s; }
+  .animate-fade-in:nth-child(4) { animation-delay: 0.4s; }
+</style>

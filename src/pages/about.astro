@@ -1,0 +1,85 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { Github, Twitter, Mail, BookOpen } from 'lucide-astro';
+import MyImage from '../img/Profile.png?url';
+---
+
+
+<Layout title="About">
+  <main class="pt-20 page-transition">
+    <div class="max-w-container mx-auto px-4 py-16">
+      <div class="max-w-2xl mx-auto">
+        <div class="text-center mb-12">
+          <div class="relative w-32 h-32 mx-auto mb-6">
+            <div class="absolute inset-0 rounded-full bg-gradient-to-br from-primary to-secondary opacity-20 blur-xl animate-pulse"></div>
+            <img
+              src={MyImage}
+              alt="Jaymin Parmar"
+              class="relative w-full h-full rounded-full object-cover border-2 border-white/10"
+            />
+          </div>
+          <h1 class="text-4xl font-montserrat font-bold text-white mb-4 tracking-tight [text-shadow:_0_4px_20px_rgba(52,152,219,0.3)]">
+            Jaymin Parmar
+          </h1>
+          <p class="text-lg text-gray-400 mb-8 max-w-lg mx-auto">
+            Always learning, always curious.
+          </p>
+        </div>
+
+        <div class="flex justify-center gap-4 mb-12">
+          <a href="https://github.com/JayminSenpai2884" target="_blank" class="social-link">
+            <Github class="w-5 h-5" />
+            <span>GitHub</span>
+          </a>
+          <a href="https://x.com/jaiminp90840206" target="_blank" class="social-link">
+            <Twitter class="w-5 h-5" />
+            <span>X</span>
+          </a>
+          <a href="https://www.medium.com/@jayminparmar2884" target="_blank" class="social-link">
+            <BookOpen class="w-5 h-5" />
+            <span>Blog</span>
+          </a>
+          <a href="mailto:work.jaymin2884@gmail.com" target="_blank" class="social-link">
+            <Mail class="w-5 h-5" />
+            <span>Gmail</span>
+          </a>
+         
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-white/5 backdrop-blur-lg rounded-xl border border-white/10 p-6 hover:border-primary/30 transition-colors">
+            <h2 class="text-xl font-montserrat font-bold text-white mb-3">Hobbies & Interests</h2>
+            <div class="flex flex-wrap gap-2">
+              
+              <span class="tech-badge">Sleeping</span>
+              <span class="tech-badge">Reading & Learning</span>
+              <span class="tech-badge">Cartoons</span>
+              <span class="tech-badge">Random tweets</span>
+              <span class="tech-badge">Tech</span>
+            </div>
+          </div>
+          <div class="bg-white/5 backdrop-blur-lg rounded-xl border border-white/10 p-6 hover:border-primary/30 transition-colors">
+            <h2 class="text-xl font-montserrat font-bold text-white mb-3">Currently Learning</h2>
+            <div class="flex flex-wrap gap-2">
+              <span class="tech-badge">AI Agent Development</span>
+              <span class="tech-badge">LangChain</span>
+              <span class="tech-badge">CrewAI</span>
+              <span class="tech-badge">Web 3</span>
+              <span class="tech-badge">UI/UX</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</Layout>
+
+<style>
+  .social-link {
+    @apply flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 backdrop-blur-lg border border-white/10 text-white/75 hover:text-primary hover:border-primary/30 transition-all duration-300;
+  }
+
+  .tech-badge {
+    @apply px-3 py-1 rounded-full bg-white/10 text-sm text-white/75 hover:bg-primary/20 hover:text-primary transition-colors cursor-default;
+  }
+</style>

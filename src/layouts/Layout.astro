@@ -1,0 +1,55 @@
+---
+import '@fontsource/open-sans';
+import '@fontsource/montserrat';
+import Navigation from '../components/Navigation.astro';
+import LoadingSpinner from '../components/LoadingSpinner.astro';
+
+
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content="JP Blog - Modern and Minimalist" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/ico" href="/favicon.ico" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+  </head>
+  <body class="min-w-mobile bg-[#121212] font-open-sans text-gray-200">
+    <div class="fixed inset-0 -z-10">
+      <div class="absolute inset-0 bg-gradient-to-br from-[#1a1a1a] to-[#0a0a0a]"></div>
+      <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(52,152,219,0.15)_0%,_transparent_70%)]"></div>
+      <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_rgba(52,152,219,0.1)_0%,_transparent_70%)]"></div>
+      <div class="absolute inset-0" style="background-image: url('data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');" class="opacity-50"></div>
+    </div>
+    <LoadingSpinner />
+    <Navigation />
+    <slot />
+  </body>
+</html>
+
+<style is:global>
+  html {
+    scroll-behavior: smooth;
+  }
+
+  .page-transition {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+</style>
