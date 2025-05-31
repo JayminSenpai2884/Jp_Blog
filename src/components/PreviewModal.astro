@@ -1,0 +1,573 @@
+---
+interface Props {
+  url: string;
+}
+
+const { url } = Astro.props;
+---
+
+<div id="preview-modal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true" aria-labelledby="preview-title">
+  <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" id="modal-backdrop" tabindex="-1"></div>
+  <div class="absolute inset-0 flex items-center justify-center p-4">
+    <div id="glass-modal" class="glass-modal bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-2xl border border-white/20 shadow-2xl rounded-3xl w-full max-w-6xl h-[92vh] flex flex-col animate-elastic-in" tabindex="0">
+      <div class="flex justify-between items-center p-6 border-b border-white/10">
+        <h3 class="text-lg font-semibold text-gray-200 tracking-tight mb-0" id="preview-title">Article Preview</h3>
+        <button id="close-modal" class="text-gray-400 hover:text-white transition-colors p-2 rounded-full hover:bg-white/10" aria-label="Close preview">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="flex-1 overflow-hidden p-8">
+        <div id="preview-content" class="h-full flex flex-col">
+          <div class="flex items-center gap-4 mb-8">
+            <svg class="h-8 w-8 text-white" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M13.54 12a6.8 6.8 0 01-6.77 6.82A6.8 6.8 0 010 12a6.8 6.8 0 016.77-6.82A6.8 6.8 0 0113.54 12zm7.42 0c0 3.54-1.51 6.42-3.38 6.42-1.87 0-3.39-2.88-3.39-6.42s1.52-6.42 3.39-6.42 3.38 2.88 3.38 6.42M24 12c0 3.17-.53 5.75-1.19 5.75-.66 0-1.19-2.58-1.19-5.75s.53-5.75 1.19-5.75C23.47 6.25 24 8.83 24 12z"/>
+            </svg>
+            <div class="flex-1">
+              <h4 class="text-white font-medium text-lg" id="preview-title-inner"></h4>
+              <p class="text-gray-400 text-sm" id="preview-author"></p>
+            </div>
+          </div>
+          <div class="flex-1 overflow-y-auto custom-scrollbar">
+            <div class="prose prose-invert max-w-none" id="preview-summary"></div>
+          </div>
+          <div class="mt-6 pt-6 border-t border-white/10 flex justify-between items-center">
+            <p class="text-gray-400 text-sm">Read the full article on Medium</p>
+            <a id="read-more-link" href="" target="_blank" class="px-6 py-2 bg-primary text-white rounded-full hover:bg-primary/90 transition-colors readmore-animate" tabindex="0">
+              Read More
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  declare global {
+    interface Window {
+      openPreviewModal: (url: string) => void;
+    }
+  }
+
+  const modal = document.getElementById('preview-modal');
+  const modalBackdrop = document.getElementById('modal-backdrop');
+  const closeButton = document.getElementById('close-modal');
+  const previewTitle = document.getElementById('preview-title-inner');
+  const previewAuthor = document.getElementById('preview-author');
+  const previewSummary = document.getElementById('preview-summary');
+  const readMoreLink = document.getElementById('read-more-link') as HTMLAnchorElement;
+  let lastFocused: HTMLElement | null = null;
+
+  // Focus trap
+  function trapFocus(modalEl) {
+    const focusable = modalEl.querySelectorAll('a, button, textarea, input, select, [tabindex]:not([tabindex="-1"])');
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    modalEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Tab') {
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault();
+            (last as HTMLElement).focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault();
+            (first as HTMLElement).focus();
+          }
+        }
+      }
+    });
+  }
+
+  // Fade out on close
+  function fadeOutModal() {
+    const glass = document.getElementById('glass-modal');
+    if (glass) {
+      glass.classList.remove('animate-elastic-in');
+      glass.classList.add('animate-fade-out');
+      setTimeout(() => {
+        if (modal) modal.classList.add('hidden');
+        glass.classList.remove('animate-fade-out');
+      }, 350);
+    } else {
+      if (modal) modal.classList.add('hidden');
+    }
+    document.body.style.overflow = '';
+    if (lastFocused) lastFocused.focus();
+  }
+
+  async function fetchArticlePreview(url: string) {
+    try {
+      // Extract the article slug from the URL
+      const slug = url.split('/').pop();
+      if (!slug) throw new Error('Invalid URL');
+
+      // Use a CORS proxy to fetch the article
+      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+      const response = await fetch(proxyUrl);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch article');
+      }
+
+      const html = await response.text();
+      
+      // Create a temporary DOM element to parse the HTML
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+
+      // Extract the article content
+      const article = doc.querySelector('article');
+      if (!article) throw new Error('Article not found');
+
+      // Try to find the main story container
+      let mainContent = article.querySelector('section');
+      if (!mainContent) mainContent = article;
+
+      // Remove unwanted elements (author, follow, meta, etc.)
+      const selectorsToRemove = [
+        '[data-testid="authorName"]',
+        'header',
+        'footer',
+        'aside',
+        'figure[role="presentation"]',
+        'button',
+        '[data-testid="storyFooter"]',
+        '[data-testid="storyMeta"]',
+        '[data-testid="socialReactions"]',
+        '[data-testid="storyTitle"] + div',
+        'svg',
+        'hr',
+        '.js-postMetaLockups',
+        '.js-postField',
+        '.js-postFooter',
+        '.pw-post-body .pw-multi-image',
+        '.pw-post-body .pw-multi-image__caption',
+        '.pw-post-body .pw-multi-image__credit',
+        '.pw-post-body .pw-multi-image__image img[alt=""]',
+        '.pw-post-body .pw-multi-image__image img[role="presentation"]',
+        '.pw-post-body .pw-multi-image__image figcaption',
+      ];
+      selectorsToRemove.forEach(sel => mainContent.querySelectorAll(sel).forEach(el => el.remove()));
+
+      // If mainContent is now empty, fall back to the original article HTML
+      let content = mainContent.innerHTML.trim();
+      if (!content) content = article.innerHTML;
+
+      // Extract the title
+      const title = article.querySelector('h1')?.textContent || '';
+      // Extract the author
+      const author = article.querySelector('a[data-testid="authorName"]')?.textContent || 'Jaymin Parmar';
+
+      return {
+        title,
+        author,
+        content: cleanContent(content)
+      };
+    } catch (error) {
+      console.error('Error fetching article preview:', error);
+      return null;
+    }
+  }
+
+  function cleanContent(content: string): string {
+    // Create a temporary div to manipulate the content
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = content;
+
+    // Remove unnecessary elements
+    const elementsToRemove = tempDiv.querySelectorAll('script, style, iframe, .medium-feed-link, .medium-feed-snippet');
+    elementsToRemove.forEach(el => el.remove());
+
+    // Clean up images
+    const images = tempDiv.querySelectorAll('img');
+    images.forEach(img => {
+      img.classList.add('rounded-lg', 'my-8', 'mx-auto', 'max-w-full', 'h-auto');
+      // Remove any inline styles that might conflict
+      img.removeAttribute('style');
+    });
+
+    // Clean up paragraphs
+    const paragraphs = tempDiv.querySelectorAll('p');
+    paragraphs.forEach(p => {
+      p.classList.add('my-4', 'leading-relaxed');
+      // Remove any inline styles
+      p.removeAttribute('style');
+    });
+
+    // Clean up headings
+    const headings = tempDiv.querySelectorAll('h1, h2, h3, h4, h5, h6');
+    headings.forEach(h => {
+      h.classList.add('font-bold', 'my-6');
+      // Remove any inline styles
+      h.removeAttribute('style');
+    });
+
+    // Clean up links
+    const links = tempDiv.querySelectorAll('a');
+    links.forEach(a => {
+      a.classList.add('text-primary', 'hover:underline');
+      // Remove any inline styles
+      a.removeAttribute('style');
+    });
+
+    // Clean up blockquotes
+    const blockquotes = tempDiv.querySelectorAll('blockquote');
+    blockquotes.forEach(blockquote => {
+      blockquote.classList.add('border-l-4', 'border-primary', 'pl-4', 'my-6', 'italic');
+      // Remove any inline styles
+      blockquote.removeAttribute('style');
+    });
+
+    return tempDiv.innerHTML;
+  }
+
+  async function openModal(url: string) {
+    if (modal) {
+      lastFocused = document.activeElement as HTMLElement;
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      // Trigger elastic animation
+      const glass = document.getElementById('glass-modal');
+      if (glass) {
+        glass.classList.remove('animate-elastic-in');
+        void glass.offsetWidth; // force reflow
+        glass.classList.add('animate-elastic-in');
+        trapFocus(glass);
+        setTimeout(() => {
+          (glass as HTMLElement).focus();
+        }, 100);
+      }
+      // Skeleton loader
+      if (previewSummary) {
+        previewSummary.innerHTML = `
+          <div class="skeleton-title mb-6"></div>
+          <div class="skeleton-text mb-4"></div>
+          <div class="skeleton-text mb-4"></div>
+          <div class="skeleton-img mb-6"></div>
+          <div class="skeleton-text mb-4"></div>
+        `;
+      }
+      if (previewTitle) previewTitle.textContent = '';
+      if (previewAuthor) previewAuthor.textContent = '';
+      try {
+        // Fetch the article preview
+        const preview = await fetchArticlePreview(url);
+        if (preview) {
+          if (previewTitle) previewTitle.textContent = preview.title;
+          if (previewAuthor) previewAuthor.textContent = preview.author;
+          if (previewSummary) {
+            previewSummary.innerHTML = `
+              <div class="space-y-6">
+                ${preview.content}
+              </div>
+            `;
+          }
+        } else {
+          if (previewTitle) previewTitle.textContent = url.split('/').pop()?.replace(/-/g, ' ') || '';
+          if (previewAuthor) previewAuthor.textContent = 'Jaymin Parmar';
+          if (previewSummary) {
+            previewSummary.innerHTML = `
+              <p class="text-gray-300 mb-4">
+                Unable to load preview. Please click "Read More" to view the full article on Medium.
+              </p>
+            `;
+          }
+        }
+      } catch (error) {
+        if (previewSummary) {
+          previewSummary.innerHTML = `
+            <p class="text-gray-300 mb-4">
+              Error loading preview. Please click "Read More" to view the full article on Medium.
+            </p>
+          `;
+        }
+      }
+      if (readMoreLink) readMoreLink.href = url;
+    }
+  }
+
+  function closeModal() {
+    fadeOutModal();
+  }
+
+  // Close modal when clicking backdrop or close button
+  modalBackdrop?.addEventListener('click', closeModal);
+  closeButton?.addEventListener('click', closeModal);
+
+  // Close modal with Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !modal?.classList.contains('hidden')) {
+      closeModal();
+    }
+  });
+
+  // Make openModal function available globally
+  window.openPreviewModal = openModal;
+</script>
+
+<style>
+  @keyframes elastic-in {
+    0% { opacity: 0; transform: scale(0.92); }
+    60% { opacity: 1; transform: scale(1.03); }
+    80% { transform: scale(0.98); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  @keyframes fade-out {
+    0% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(0.96); }
+  }
+  .animate-elastic-in {
+    animation: elastic-in 0.95s cubic-bezier(0.68,-0.55,0.27,1.55);
+  }
+  .animate-fade-out {
+    animation: fade-out 0.35s cubic-bezier(0.4,0,0.2,1);
+  }
+  .glass-modal {
+    background: linear-gradient(135deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.03) 100%);
+    box-shadow: 0 6px 24px 0 rgba(52,152,219,0.10), 0 1.5px 4px 0 rgba(0,0,0,0.08);
+    border-radius: 2rem;
+    border: 1px solid rgba(255,255,255,0.13);
+    backdrop-filter: blur(16px) saturate(1.1);
+    -webkit-backdrop-filter: blur(16px) saturate(1.1);
+    outline: none;
+  }
+  /* Skeleton Loader */
+  .skeleton-title {
+    height: 2.2rem;
+    width: 60%;
+    background: linear-gradient(90deg, #23262d 25%, #2d323c 50%, #23262d 75%);
+    border-radius: 0.5rem;
+    animation: skeleton 1.2s infinite linear;
+  }
+  .skeleton-text {
+    height: 1.1rem;
+    width: 90%;
+    background: linear-gradient(90deg, #23262d 25%, #2d323c 50%, #23262d 75%);
+    border-radius: 0.5rem;
+    animation: skeleton 1.2s infinite linear;
+  }
+  .skeleton-img {
+    height: 180px;
+    width: 100%;
+    background: linear-gradient(90deg, #23262d 25%, #2d323c 50%, #23262d 75%);
+    border-radius: 1rem;
+    animation: skeleton 1.2s infinite linear;
+  }
+  @keyframes skeleton {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+  /* Read More Button Animation */
+  .readmore-animate {
+    transition: transform 0.18s cubic-bezier(0.4,0,0.2,1), background 0.18s;
+  }
+  .readmore-animate:hover, .readmore-animate:focus {
+    transform: scale(1.06);
+    background: #217dbb;
+  }
+  #preview-modal {
+    transition: opacity 0.3s ease-in-out;
+    font-family: 'Montserrat', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  }
+
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(52, 152, 219, 0.2) transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(52, 152, 219, 0.2);
+    border-radius: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(52, 152, 219, 0.3);
+  }
+
+  .bg-gradient-to-br {
+    background: linear-gradient(135deg, #181c24 0%, #23262d 100%);
+  }
+
+  .border-white\/10 {
+    border-color: rgba(255,255,255,0.10);
+  }
+
+  .shadow-2xl {
+    box-shadow: 0 8px 32px 0 rgba(52,152,219,0.15), 0 1.5px 4px 0 rgba(0,0,0,0.10);
+  }
+
+  .rounded-2xl {
+    border-radius: 1.25rem;
+  }
+
+  .prose {
+    color: #e5e5e5;
+    font-size: 1.08rem;
+    line-height: 1.7;
+    font-family: 'Montserrat', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+    letter-spacing: -0.01em;
+    word-break: break-word;
+  }
+
+  .prose img {
+    margin: 1.2rem auto;
+    border-radius: 0.6rem;
+    box-shadow: 0 2px 12px 0 rgba(52,152,219,0.08);
+  }
+
+  .prose p {
+    margin: 1.1rem 0;
+    line-height: 1.7;
+    color: #e5e5e5;
+    font-size: 1.05rem;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+
+  .prose h1 {
+    font-size: 1.6rem;
+    margin-top: 2rem;
+    margin-bottom: 1.1rem;
+    color: #fff;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .prose h2 {
+    font-size: 1.25rem;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    color: #fff;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .prose h3 {
+    font-size: 1.1rem;
+    margin-top: 1.2rem;
+    margin-bottom: 0.7rem;
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .prose a {
+    color: #3498db;
+    text-decoration: none;
+    transition: color 0.2s;
+    font-weight: 500;
+  }
+
+  .prose a:hover {
+    color: #5dade2;
+    text-decoration: underline;
+  }
+
+  .prose blockquote {
+    font-size: 1rem;
+    margin: 1.2rem 0;
+    padding: 0.8rem 0 0.8rem 1.2rem;
+    border-radius: 0.4rem;
+  }
+
+  .prose ul, .prose ol {
+    margin: 1.1rem 0;
+    padding-left: 1.3rem;
+  }
+
+  .prose li {
+    margin: 0.3rem 0;
+    font-size: 1.01rem;
+  }
+
+  .prose code {
+    font-size: 0.98em;
+    padding: 0.18rem 0.36rem;
+  }
+
+  .prose pre {
+    font-size: 0.98em;
+    padding: 0.8rem;
+    margin: 1.1rem 0;
+    border-radius: 0.6rem;
+  }
+
+  .prose strong {
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .prose em {
+    color: #b2becd;
+  }
+
+  /* Modal header and button styles */
+  .text-primary {
+    color: #3498db;
+  }
+
+  .bg-primary {
+    background-color: #3498db;
+  }
+
+  .hover\:bg-primary\/90:hover {
+    background-color: #217dbb;
+  }
+
+  .rounded-full {
+    border-radius: 9999px;
+  }
+
+  .font-montserrat {
+    font-family: 'Montserrat', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  }
+
+  .font-bold {
+    font-weight: 700;
+  }
+
+  .font-semibold {
+    font-weight: 600;
+  }
+
+  .transition-colors {
+    transition: color 0.2s, background 0.2s;
+  }
+
+  .px-6 {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  .py-2 {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .mt-6 {
+    margin-top: 1.5rem;
+  }
+
+  .pt-6 {
+    padding-top: 1.5rem;
+  }
+
+  .mb-8 {
+    margin-bottom: 2rem;
+  }
+
+  .space-y-6 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 1.5rem;
+  }
+</style> 

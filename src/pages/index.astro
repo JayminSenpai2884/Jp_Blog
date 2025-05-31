@@ -1,17 +1,31 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import BlogCard from '../components/BlogCard.astro';
+import PreviewModal from '../components/PreviewModal.astro';
 
 const posts = [
+
+{
+    title: "What If Movies Weren't Just \"Movies\"?",
+    summary: "my opinion on movies",
+    image: "https://miro.medium.com/v2/resize:fit:720/format:webp/1*xf4rbh9LTfls-aQOH6_frQ.jpeg",
+    url: "https://medium.com/@jayminparmar2884/what-if-movies-werent-just-movies-95cb3457736a"
+},
+{
+    title: "Rapid Growth of AI…and the Future",
+    summary: "The future of AI is here, and it's only going to get better.",
+    image: "https://miro.medium.com/v2/resize:fit:720/format:webp/0*p-pJ20OBvttIQJ62",
+    url: "https://medium.com/@jayminparmar2884/rapid-growth-of-ai-and-the-future-4ec80eaf00b2"
+},
 {
     title: "Microsoft Majorana 1",
-    summary: "World’s first Quantum Processing Unit (QPU)",
+    summary: "World's first Quantum Processing Unit (QPU)",
     image: "https://miro.medium.com/v2/resize:fit:720/format:webp/1*Rji9gsKWf7iqabVcNnbzVA.png",
     url: "https://medium.com/@jayminparmar2884/microsoft-majorana-1-is-the-worlds-first-quantum-processing-unit-qpu-cc9ba57b6312"
   },
 {
     title: "Artificial Superintelligence🤖",
-    summary: "Humanity’s Next Revolution",
+    summary: "Humanity's Next Revolution",
     image: "https://miro.medium.com/v2/resize:fit:720/format:webp/1*cyXEVqVa0ac64USJ_huhRw.png",
     url: "https://medium.com/@jayminparmar2884/artificial-superintelligence-humanitys-next-revolution-7a90edca7f64"
   },
@@ -66,6 +80,7 @@ const posts = [
       </div>
     </div>
   </main>
+  <PreviewModal url="" />
 </Layout>
 
 <style>

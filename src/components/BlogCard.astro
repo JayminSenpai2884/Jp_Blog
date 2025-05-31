@@ -12,7 +12,7 @@ const { title, summary, image, url, size = 'large' } = Astro.props;
 ---
 
 <article class="group h-full bg-white/5 backdrop-blur-lg rounded-xl border border-white/10 overflow-hidden transform hover:-translate-y-1 transition-all duration-300" style="height: 400px;">
-  <a href={url} target="_blank" class="block h-full relative">
+  <button onclick={`window.openPreviewModal('${url}')`} class="block h-full relative w-full text-left">
     <div class="absolute inset-0">
       <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent opacity-60 group-hover:opacity-80 transition-opacity"></div>
       <img src={image} alt={title} class="w-full h-full object-cover" style="object-fit: cover;" />
@@ -25,5 +25,5 @@ const { title, summary, image, url, size = 'large' } = Astro.props;
         {summary}
       </p>
     </div>
-  </a>
+  </button>
 </article>
