@@ -7,36 +7,40 @@ const { url } = Astro.props;
 ---
 
 <div id="preview-modal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true" aria-labelledby="preview-title">
-  <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" id="modal-backdrop" tabindex="-1"></div>
+  <div class="absolute inset-0 bg-black/90 backdrop-blur-md" id="modal-backdrop" tabindex="-1"></div>
   <div class="absolute inset-0 flex items-center justify-center p-4">
-    <div id="glass-modal" class="glass-modal bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-2xl border border-white/20 shadow-2xl rounded-3xl w-full max-w-6xl h-[92vh] flex flex-col animate-elastic-in" tabindex="0">
-      <div class="flex justify-between items-center p-6 border-b border-white/10">
-        <h3 class="text-lg font-semibold text-gray-200 tracking-tight mb-0" id="preview-title">Article Preview</h3>
-        <button id="close-modal" class="text-gray-400 hover:text-white transition-colors p-2 rounded-full hover:bg-white/10" aria-label="Close preview">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div id="glass-modal" class="glass-modal bg-gradient-to-br from-white/3 to-white/1 backdrop-blur-xl border border-white/5 shadow-xl rounded-xl w-full max-w-5xl h-[90vh] flex flex-col animate-elastic-in" tabindex="0">
+      <div class="flex justify-between items-center p-1 border-b border-white/5">
+        
+        <button id="close-modal" class="text-gray-500 hover:text-white transition-colors duration-200 p-1.5 rounded-lg hover:bg-white/5" aria-label="Close preview">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
       </div>
-      <div class="flex-1 overflow-hidden p-8">
-        <div id="preview-content" class="h-full flex flex-col">
-          <div class="flex items-center gap-4 mb-8">
-            <svg class="h-8 w-8 text-white" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M13.54 12a6.8 6.8 0 01-6.77 6.82A6.8 6.8 0 010 12a6.8 6.8 0 016.77-6.82A6.8 6.8 0 0113.54 12zm7.42 0c0 3.54-1.51 6.42-3.38 6.42-1.87 0-3.39-2.88-3.39-6.42s1.52-6.42 3.39-6.42 3.38 2.88 3.38 6.42M24 12c0 3.17-.53 5.75-1.19 5.75-.66 0-1.19-2.58-1.19-5.75s.53-5.75 1.19-5.75C23.47 6.25 24 8.83 24 12z"/>
-            </svg>
+      <div class="flex-1 overflow-hidden p-3">
+        <div id="preview-content" class="h-full flex flex-col bg-white/1 rounded-lg">
+          <div class="flex items-center gap-3 p-3 border-b border-white/3">
+            <div class="w-6 h-6 bg-primary/15 rounded-md flex items-center justify-center">
+              <svg class="h-3 w-3 text-primary" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M13.54 12a6.8 6.8 0 01-6.77 6.82A6.8 6.8 0 010 12a6.8 6.8 0 016.77-6.82A6.8 6.8 0 0113.54 12zm7.42 0c0 3.54-1.51 6.42-3.38 6.42-1.87 0-3.39-2.88-3.39-6.42s1.52-6.42 3.39-6.42 3.38 2.88 3.38 6.42M24 12c0 3.17-.53 5.75-1.19 5.75-.66 0-1.19-2.58-1.19-5.75s.53-5.75 1.19-5.75C23.47 6.25 24 8.83 24 12z"/>
+              </svg>
+            </div>
             <div class="flex-1">
-              <h4 class="text-white font-medium text-lg" id="preview-title-inner"></h4>
-              <p class="text-gray-400 text-sm" id="preview-author"></p>
+              <h4 class="text-white font-montserrat font-medium text-base mb-0" id="preview-title-inner"></h4>
+              <p class="text-gray-400 text-xs" id="preview-author"></p>
             </div>
           </div>
-          <div class="flex-1 overflow-y-auto custom-scrollbar">
+          <div class="flex-1 overflow-y-auto custom-scrollbar p-4">
             <div class="prose prose-invert max-w-none" id="preview-summary"></div>
           </div>
-          <div class="mt-6 pt-6 border-t border-white/10 flex justify-between items-center">
-            <p class="text-gray-400 text-sm">Read the full article on Medium</p>
-            <a id="read-more-link" href="" target="_blank" class="px-6 py-2 bg-primary text-white rounded-full hover:bg-primary/90 transition-colors readmore-animate" tabindex="0">
-              Read More
-            </a>
+          <div class="p-3 border-t border-white/3">
+            <div class="flex justify-between items-center">
+              <p class="text-gray-500 text-xs">Read on Medium</p>
+              <a id="read-more-link" href="" target="_blank" class="px-3 py-1.5 bg-primary/10 text-primary rounded-md hover:bg-primary/20 transition-colors duration-200 font-montserrat text-xs font-medium" tabindex="0">
+                Read More
+              </a>
+            </div>
           </div>
         </div>
       </div>
@@ -105,15 +109,40 @@ const { url } = Astro.props;
       const slug = url.split('/').pop();
       if (!slug) throw new Error('Invalid URL');
 
-      // Use a CORS proxy to fetch the article
-      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
-      const response = await fetch(proxyUrl);
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch article');
+      // Try multiple CORS proxy services as fallback
+      const proxyServices = [
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+        `https://cors-anywhere.herokuapp.com/${url}`,
+        `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
+      ];
+
+      let response = null;
+      let html = '';
+
+      // Try each proxy service
+      for (const proxyUrl of proxyServices) {
+        try {
+          response = await fetch(proxyUrl, {
+            method: 'GET',
+            headers: {
+              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+              'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
+            }
+          });
+          
+          if (response.ok) {
+            html = await response.text();
+            break;
+          }
+        } catch (proxyError) {
+          console.warn(`Proxy ${proxyUrl} failed:`, proxyError);
+          continue;
+        }
       }
 
-      const html = await response.text();
+      if (!html) {
+        throw new Error('All proxy services failed');
+      }
       
       // Create a temporary DOM element to parse the HTML
       const parser = new DOMParser();
@@ -244,11 +273,11 @@ const { url } = Astro.props;
       // Skeleton loader
       if (previewSummary) {
         previewSummary.innerHTML = `
-          <div class="skeleton-title mb-6"></div>
-          <div class="skeleton-text mb-4"></div>
-          <div class="skeleton-text mb-4"></div>
-          <div class="skeleton-img mb-6"></div>
-          <div class="skeleton-text mb-4"></div>
+          <div class="skeleton-title mb-4"></div>
+          <div class="skeleton-text mb-3"></div>
+          <div class="skeleton-text mb-3"></div>
+          <div class="skeleton-img mb-4"></div>
+          <div class="skeleton-text mb-3"></div>
         `;
       }
       if (previewTitle) previewTitle.textContent = '';
@@ -261,28 +290,48 @@ const { url } = Astro.props;
           if (previewAuthor) previewAuthor.textContent = preview.author;
           if (previewSummary) {
             previewSummary.innerHTML = `
-              <div class="space-y-6">
+              <div class="space-y-4">
                 ${preview.content}
               </div>
             `;
           }
         } else {
-          if (previewTitle) previewTitle.textContent = url.split('/').pop()?.replace(/-/g, ' ') || '';
+          // Extract title from URL slug as fallback
+          const urlSlug = url.split('/').pop()?.replace(/-/g, ' ') || '';
+          const fallbackTitle = urlSlug.charAt(0).toUpperCase() + urlSlug.slice(1);
+          
+          if (previewTitle) previewTitle.textContent = fallbackTitle;
           if (previewAuthor) previewAuthor.textContent = 'Jaymin Parmar';
           if (previewSummary) {
             previewSummary.innerHTML = `
-              <p class="text-gray-300 mb-4">
-                Unable to load preview. Please click "Read More" to view the full article on Medium.
-              </p>
+              <div class="text-center py-8">
+                <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-primary/10 flex items-center justify-center">
+                  <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                  </svg>
+                </div>
+                <h3 class="text-base font-medium text-white mb-1">Preview Unavailable</h3>
+                <p class="text-gray-400 text-sm max-w-md mx-auto">
+                  We couldn't load a preview of this article. Click "Read More" to view the full content on Medium.
+                </p>
+              </div>
             `;
           }
         }
       } catch (error) {
         if (previewSummary) {
           previewSummary.innerHTML = `
-            <p class="text-gray-300 mb-4">
-              Error loading preview. Please click "Read More" to view the full article on Medium.
-            </p>
+            <div class="text-center py-8">
+              <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-primary/10 flex items-center justify-center">
+                <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+              </div>
+              <h3 class="text-base font-medium text-white mb-1">Preview Error</h3>
+              <p class="text-gray-400 text-sm max-w-md mx-auto">
+                There was an error loading the preview. Please click "Read More" to view the full article on Medium.
+              </p>
+            </div>
           `;
         }
       }
@@ -327,12 +376,12 @@ const { url } = Astro.props;
     animation: fade-out 0.35s cubic-bezier(0.4,0,0.2,1);
   }
   .glass-modal {
-    background: linear-gradient(135deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.03) 100%);
-    box-shadow: 0 6px 24px 0 rgba(52,152,219,0.10), 0 1.5px 4px 0 rgba(0,0,0,0.08);
-    border-radius: 2rem;
-    border: 1px solid rgba(255,255,255,0.13);
-    backdrop-filter: blur(16px) saturate(1.1);
-    -webkit-backdrop-filter: blur(16px) saturate(1.1);
+    background: rgba(255,255,255,0.02);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.05);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     outline: none;
   }
   /* Skeleton Loader */
@@ -361,17 +410,21 @@ const { url } = Astro.props;
     0% { background-position: -200px 0; }
     100% { background-position: calc(200px + 100%) 0; }
   }
-  /* Read More Button Animation */
+  /* Simplified Button Animation */
   .readmore-animate {
-    transition: transform 0.18s cubic-bezier(0.4,0,0.2,1), background 0.18s;
+    transition: all 0.2s ease;
   }
+  
   .readmore-animate:hover, .readmore-animate:focus {
-    transform: scale(1.06);
-    background: #217dbb;
+    transform: translateY(-1px);
   }
   #preview-modal {
     transition: opacity 0.3s ease-in-out;
     font-family: 'Montserrat', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  }
+
+  #preview-modal * {
+    font-family: inherit;
   }
 
   .custom-scrollbar {
@@ -414,50 +467,51 @@ const { url } = Astro.props;
 
   .prose {
     color: #e5e5e5;
-    font-size: 1.08rem;
-    line-height: 1.7;
+    font-size: 1rem;
+    line-height: 1.6;
     font-family: 'Montserrat', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.005em;
     word-break: break-word;
+    font-weight: 400;
   }
 
   .prose img {
-    margin: 1.2rem auto;
-    border-radius: 0.6rem;
-    box-shadow: 0 2px 12px 0 rgba(52,152,219,0.08);
+    margin: 1rem auto;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 8px 0 rgba(52,152,219,0.08);
   }
 
   .prose p {
-    margin: 1.1rem 0;
-    line-height: 1.7;
+    margin: 0.75rem 0;
+    line-height: 1.6;
     color: #e5e5e5;
-    font-size: 1.05rem;
+    font-size: 0.95rem;
     font-weight: 400;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.005em;
   }
 
   .prose h1 {
-    font-size: 1.6rem;
-    margin-top: 2rem;
-    margin-bottom: 1.1rem;
+    font-size: 1.4rem;
+    margin-top: 1.25rem;
+    margin-bottom: 0.75rem;
     color: #fff;
-    font-weight: 700;
-    letter-spacing: -0.01em;
+    font-weight: 600;
+    letter-spacing: -0.005em;
   }
 
   .prose h2 {
-    font-size: 1.25rem;
-    margin-top: 1.5rem;
-    margin-bottom: 1rem;
+    font-size: 1.15rem;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
     color: #fff;
     font-weight: 600;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.005em;
   }
 
   .prose h3 {
-    font-size: 1.1rem;
-    margin-top: 1.2rem;
-    margin-bottom: 0.7rem;
+    font-size: 1.05rem;
+    margin-top: 0.75rem;
+    margin-bottom: 0.25rem;
     color: #fff;
     font-weight: 600;
   }
@@ -475,20 +529,20 @@ const { url } = Astro.props;
   }
 
   .prose blockquote {
-    font-size: 1rem;
-    margin: 1.2rem 0;
-    padding: 0.8rem 0 0.8rem 1.2rem;
+    font-size: 0.95rem;
+    margin: 1rem 0;
+    padding: 0.6rem 0 0.6rem 1rem;
     border-radius: 0.4rem;
   }
 
   .prose ul, .prose ol {
-    margin: 1.1rem 0;
-    padding-left: 1.3rem;
+    margin: 0.75rem 0;
+    padding-left: 1.2rem;
   }
 
   .prose li {
-    margin: 0.3rem 0;
-    font-size: 1.01rem;
+    margin: 0.25rem 0;
+    font-size: 0.95rem;
   }
 
   .prose code {
@@ -567,7 +621,24 @@ const { url } = Astro.props;
     margin-bottom: 2rem;
   }
 
-  .space-y-6 > :not([hidden]) ~ :not([hidden]) {
-    margin-top: 1.5rem;
+  .space-y-4 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 1rem;
+  }
+
+  /* Simplified focus states */
+  #close-modal:focus,
+  #read-more-link:focus {
+    outline: 1px solid rgba(52, 152, 219, 0.4);
+    outline-offset: 1px;
+  }
+
+  /* Minimal scrollbar styling */
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(52, 152, 219, 0.2);
+    border-radius: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(52, 152, 219, 0.3);
   }
 </style> 
